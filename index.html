@@ -84,6 +84,11 @@ th{color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.08em}
 .symchk input{width:auto;accent-color:var(--accent)}
 .export{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
 .export .btn.alt{background:var(--card);color:var(--text);border:1.5px solid var(--accent)}
+.ss{display:inline-block;margin-left:10px;padding:6px 12px;border-radius:4px;font-size:14px;vertical-align:middle}
+.ss:empty{display:none}
+.ss.ok{background:color-mix(in srgb,var(--p3) 22%,var(--card));color:var(--text);border:1px solid var(--p3)}
+.ss.err{background:color-mix(in srgb,#b0483f 15%,var(--card));color:var(--text);border:1px solid #b0483f}
+.ss.wait{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
 #msg{color:var(--muted);font-size:14px;min-height:22px;margin:0 0 12px}
 #logTable td{font-size:14px}
 #logTable button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px}
@@ -152,6 +157,7 @@ footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px soli
 <section id="log">
   <h2 class="title serif">我的紀錄</h2>
   <p class="lead noprint">每天花一分鐘記錄身體狀況與飲食。資料會存在這台裝置並同步到雲端（以匿名身分，僅本瀏覽器可讀取），可匯出成 Excel、CSV、PDF，或貼到 Google 試算表。</p>
+  <p id="cloud" class="noprint" style="font-size:14px;margin:0 0 12px;color:var(--muted)">☁ 雲端：檢查連線中…</p>
   <div class="card noprint">
     <form id="logForm" class="ff">
       <label>日期<input type="date" id="f-date" required></label>
@@ -167,7 +173,7 @@ footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px soli
       <label>晚餐<input id="f-dinner"></label>
       <label>點心<input id="f-snack"></label>
       <label class="full">備註<textarea id="f-note" rows="2"></textarea></label>
-      <div class="full"><button class="btn" type="submit">儲存這一天</button> <small style="color:var(--muted)">同一天再儲存會覆蓋舊紀錄</small></div>
+      <div class="full"><button class="btn" type="submit">儲存這一天</button> <span id="saveStatus" class="ss" role="status" aria-live="polite"></span><br><small style="color:var(--muted)">同一天再儲存會覆蓋舊紀錄</small></div>
     </form>
   </div>
   <div class="export noprint">
@@ -394,9 +400,15 @@ $("logForm").onsubmit=async e=>{
     mood:$("f-mood").value,energy:$("f-energy").value,water:$("f-water").value,sleep:$("f-sleep").value,
     breakfast:$("f-breakfast").value,lunch:$("f-lunch").value,dinner:$("f-dinner").value,snack:$("f-snack").value,note:$("f-note").value};
   const a=getLog().filter(x=>x.date!==date);a.push(rec);a.sort((x,y)=>y.date.localeCompare(x.date));
-  setLog(a);renderLog();msg(`已儲存 ${date} 的紀錄。`);
-  pushRemote(rec).then(ok=>msg(ok?`已儲存 ${date} 的紀錄，並同步到雲端。`:`已儲存 ${date} 的紀錄（僅存在本機，雲端同步失敗）。`));
+  setLog(a);renderLog();
+  setSave("wait","已存到本機，正在同步到雲端…");
+  const err=await pushRemote(rec);
+  renderLog();
+  if(err){setSave("err","✖ 只存在本機，雲端儲存失敗："+err);msg(`${date} 只存在本機，尚未同步到 Supabase。`)}
+  else{setSave("ok","✔ 已儲存，並同步到 Supabase（"+new Date().toLocaleTimeString("zh-TW")+"）");msg(`${date} 的紀錄已同步到 Supabase。`)}
 };
+function setSave(kind,text){const el=$("saveStatus");el.className="ss "+kind;el.textContent=text}
+const synced=new Set();
 
 // ---- Supabase sync ----
 const SB_URL="https://jghwiieqwzsjkqttgzyt.supabase.co",SB_KEY="sb_publishable_Sbqg45sARvIPzbflzG65FA_WMsy9lj_";
@@ -421,19 +433,25 @@ const toRow=r=>({client_id:CID,log_date:r.date,cycle_day:r.day===""?null:+r.day,
   breakfast:r.breakfast||null,lunch:r.lunch||null,dinner:r.dinner||null,snack:r.snack||null,note:r.note||null,updated_at:new Date().toISOString()});
 const fromRow=r=>({date:r.log_date,day:r.cycle_day??"",phase:r.phase??"",flow:r.flow??"",symptoms:r.symptoms??"",mood:r.mood??"",energy:r.energy??"",
   water:r.water_ml??"",sleep:r.sleep_hours??"",breakfast:r.breakfast??"",lunch:r.lunch??"",dinner:r.dinner??"",snack:r.snack??"",note:r.note??""});
+// returns "" on success, otherwise a short error message
 async function pushRemote(rec){
-  if(!await sbInit())return false;
+  if(!await sbInit())return "無法載入 Supabase 元件（請確認有連網）";
   const {error}=await sb.from("cycle_logs").upsert(toRow(rec),{onConflict:"client_id,log_date"});
-  if(error)console.warn(error);return !error;
+  if(error){console.warn(error);return error.message}
+  synced.add(rec.date);return "";
 }
+const cloud=(ok,t)=>{const el=$("cloud");el.textContent=t;el.style.color=ok?"var(--p3)":"#b0483f"};
 async function deleteRemote(date){
   if(!await sbInit())return;
-  const {error}=await sb.from("cycle_logs").delete().eq("log_date",date);if(error)console.warn(error);
+  const {error}=await sb.from("cycle_logs").delete().eq("log_date",date);
+  if(error){console.warn(error);msg("雲端刪除失敗："+error.message)}else synced.delete(date);
 }
 async function pullRemote(){
-  if(!await sbInit())return;
+  if(!await sbInit()){cloud(false,"☁ 雲端：無法載入 Supabase 元件，目前只會存在本機");return}
   const {data,error}=await sb.from("cycle_logs").select("*");
-  if(error){console.warn(error);return}
+  if(error){console.warn(error);cloud(false,"☁ 雲端：連線失敗（"+error.message+"），目前只會存在本機");return}
+  data.forEach(r=>synced.add(r.log_date));
+  cloud(true,`☁ 雲端：已連線 Supabase，雲端目前有 ${data.length} 筆紀錄`);
   const remote=new Map(data.map(r=>[r.log_date,fromRow(r)]));
   const local=getLog();
   // local-only records (saved offline) get uploaded
@@ -443,9 +461,9 @@ async function pullRemote(){
 }
 function renderLog(){
   const a=getLog();
-  $("logTable").innerHTML=`<tr>${COLS.map(c=>`<th>${c[1]}</th>`).join("")}<th class="noprint"></th></tr>`+
-   (a.length?a.map(r=>`<tr>${COLS.map(c=>`<td>${esc(r[c[0]])}</td>`).join("")}<td class="noprint"><button data-d="${r.date}">刪除</button></td></tr>`).join("")
-   :`<tr><td colspan="${COLS.length+1}" style="color:var(--muted)">還沒有紀錄，填寫上方表單後會顯示在這裡。</td></tr>`);
+  $("logTable").innerHTML=`<tr>${COLS.map(c=>`<th>${c[1]}</th>`).join("")}<th class="noprint">雲端</th><th class="noprint"></th></tr>`+
+   (a.length?a.map(r=>`<tr>${COLS.map(c=>`<td>${esc(r[c[0]])}</td>`).join("")}<td class="noprint">${synced.has(r.date)?"☁ ✔ 已同步":"僅本機"}</td><td class="noprint"><button data-d="${r.date}">刪除</button></td></tr>`).join("")
+   :`<tr><td colspan="${COLS.length+2}" style="color:var(--muted)">還沒有紀錄，填寫上方表單後會顯示在這裡。</td></tr>`);
   $("logTable").querySelectorAll("button[data-d]").forEach(b=>b.onclick=()=>{
     if(confirm("刪除 "+b.dataset.d+" 的紀錄？")){setLog(getLog().filter(x=>x.date!==b.dataset.d));renderLog();deleteRemote(b.dataset.d)}
   });
