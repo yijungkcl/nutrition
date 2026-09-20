@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>週期營養指南</title>
+<style>
+:root{
+  --bg:#f0ebe4; --card:#f9f6f1; --text:#4a4440; --muted:#8a8178; --line:#ddd4c9;
+  --p1:#b58a85; --p2:#c4a882; --p3:#8fa394; --p4:#8e91a8; --accent:#7d6b64;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1e1c1a; --card:#292623; --text:#ebe4dc; --muted:#a39a90; --line:#3d3934;
+  --p1:#c49b96; --p2:#cfb48f; --p3:#9fb3a4; --p4:#9da0b8; --accent:#a8958c;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.75}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+header{padding:56px 0 24px;text-align:center}
+header h1{font-family:"Noto Serif TC","Songti TC",PMingLiU,serif;font-weight:500;font-size:clamp(28px,5vw,44px);margin:0 0 8px;letter-spacing:.18em}
+header p{color:var(--muted);margin:0 auto;max-width:560px}
+.calc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:24px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:end}
+.calc label{display:flex;flex-direction:column;font-size:14px;color:var(--muted);gap:4px}
+.calc input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px}
+.calc button{padding:10px 20px;border:0;border-radius:8px;background:var(--accent);color:var(--card);font-size:16px;cursor:pointer;letter-spacing:.05em}
+#result{flex-basis:100%;margin:0;font-weight:600}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:20px 0 6px}
+.bar div{height:100%}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 16px}
+.tab{flex:1 1 140px;padding:12px;border:1.5px solid var(--line);border-radius:4px;background:var(--card);color:var(--text);cursor:pointer;font-size:16px;text-align:center}
+.tab small{display:block;color:var(--muted);font-size:12px}
+.tab[aria-selected=true]{border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
+.panel{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:4px;padding:24px;margin-bottom:24px}
+.panel[hidden]{display:none}
+.panel h2{margin:0 0 4px;font-family:"Noto Serif TC","Songti TC",PMingLiU,serif;font-weight:500;letter-spacing:.1em}
+.panel .sub{color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.box{background:var(--bg);border-radius:12px;padding:14px 16px}
+.box h3{margin:0 0 6px;font-size:16px}
+.box ul{margin:0;padding-left:20px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:2px 12px;font-size:14px}
+.avoid h3{color:var(--accent)}
+footer{color:var(--muted);font-size:13px;padding:24px 0 48px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🌸 週期營養指南</h1>
+  <p>依據月經週期四個階段的荷爾蒙變化，調整飲食，讓身體吃得更剛好。</p>
+</header>
+
+<section class="calc">
+  <label>上次月經第一天<input type="date" id="start"></label>
+  <label>週期天數<input type="number" id="len" value="28" min="21" max="40"></label>
+  <button id="go">我現在在哪個階段？</button>
+  <p id="result"></p>
+</section>
+
+<div class="bar" aria-hidden="true">
+  <div style="flex:5;background:var(--p1)"></div>
+  <div style="flex:8;background:var(--p2)"></div>
+  <div style="flex:3;background:var(--p3)"></div>
+  <div style="flex:12;background:var(--p4)"></div>
+</div>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+<div id="panels"></div>
+
+<footer>
+  ⚠️ 本站內容僅供一般營養教育，不能取代醫師或營養師的個人化建議。週期天數因人而異；若經痛劇烈、經量異常、週期不規律或懷孕、患有慢性疾病，請諮詢專業醫療人員。「週期飲食」的部分說法（如種子循環）目前科學證據有限，請視為參考。
+</footer>
+</div>
+
+<script>
+const phases=[
+{id:"m",name:"月經期",days:"約第 1–5 天",c:"var(--p1)",
+ hormone:"雌激素與黃體素處於低點，子宮內膜剝落，會流失鐵質，容易疲倦、經痛。",
+ focus:[["補鐵","紅肉、豬肝、牛腱、蛤蜊、深綠色蔬菜、黑芝麻、豆腐"],["搭配維生素 C 提高吸收","芭樂、奇異果、彩椒、柑橘"],["鎂與 Omega-3（可能緩解經痛）","堅果、黑巧克力、鮭魚、鯖魚、亞麻籽"]],
+ tips:["溫熱、易消化的食物（湯品、粥、薑茶）較舒適","多喝水，補充流失的水分","茶、咖啡與鐵質食物錯開一小時，以免影響吸收"],
+ avoid:["過量咖啡因與酒精（可能加重經痛與睡眠問題）","過鹹加工食品（易水腫）"]},
+{id:"f",name:"濾泡期",days:"約第 6–13 天",c:"var(--p2)",
+ hormone:"雌激素逐步上升，精力、情緒與胰島素敏感度較好，是適合運動與嘗試新事物的階段。",
+ focus:[["優質蛋白質，支持肌肉與修復","雞胸、蛋、豆類、優格、魚"],["新鮮蔬果與十字花科","花椰菜、青花菜、高麗菜、芽菜、柑橘"],["發酵食物，顧腸道與雌激素代謝","泡菜、味噌、優格、納豆"]],
+ tips:["精力好，可適度增加全穀類與運動前碳水","多樣化蔬菜，攝取不同植化素"],
+ avoid:["過度節食（會干擾荷爾蒙平衡）"]},
+{id:"o",name:"排卵期",days:"約第 14–16 天",c:"var(--p3)",
+ hormone:"雌激素達到高峰並出現 LH 高峰，體溫略升，部分人會有排卵痛或食慾下降。",
+ focus:[["抗氧化營養素","莓果、番茄、彩色蔬菜、綠茶"],["高纖維，協助雌激素排出","燕麥、地瓜、豆類、奇亞籽、蔬菜"],["鋅與硒，支持排卵與免疫","海鮮、牡蠣、南瓜籽、巴西堅果、蛋"]],
+ tips:["充足補水，排卵期分泌物增加","若打算懷孕，可確認葉酸攝取（深綠色蔬菜、豆類、營養補充品）"],
+ avoid:["酒精（影響荷爾蒙代謝）"]},
+{id:"l",name:"黃體期",days:"約第 17–28 天",c:"var(--p4)",
+ hormone:"黃體素上升，基礎代謝可能略增，食慾變大；後期荷爾蒙下降，常出現 PMS：情緒低落、脹氣、渴望甜食。",
+ focus:[["複合碳水，穩定血糖與情緒","地瓜、糙米、燕麥、南瓜、藜麥"],["維生素 B6 與色胺酸，支持情緒","鮭魚、香蕉、鷹嘴豆、火雞肉、堅果"],["鈣與鎂，有助減輕 PMS 症狀","牛奶、乳酪、深綠蔬菜、黑巧克力（70% 以上）、杏仁"]],
+ tips:["少量多餐，蛋白質＋纖維一起吃，避免血糖大起大落","想吃甜食時，選水果、優格或一小塊黑巧克力","睡眠規律，晚間避免咖啡因"],
+ avoid:["高鹽食物（加重水腫脹氣）","高糖飲料與精緻甜點","酒精與過量咖啡因（加重焦慮與失眠）"]}
+];
+const tabs=document.getElementById("tabs"),panels=document.getElementById("panels");
+phases.forEach((p,i)=>{
+  const t=document.createElement("button");t.className="tab";t.role="tab";t.id="t-"+p.id;
+  t.style.setProperty("--c",p.c);t.innerHTML=p.name+"<small>"+p.days+"</small>";
+  t.onclick=()=>show(p.id);tabs.appendChild(t);
+  const d=document.createElement("section");d.className="panel";d.id="p-"+p.id;d.hidden=true;d.style.setProperty("--c",p.c);
+  d.innerHTML=`<h2>${p.name}</h2><p class="sub">${p.days}｜${p.hormone}</p>
+  <div class="grid">`+p.focus.map(f=>`<div class="box"><h3>${f[0]}</h3><div class="chips">${f[1].split("、").map(x=>`<span class="chip">${x}</span>`).join("")}</div></div>`).join("")+
+  `<div class="box"><h3>小提醒</h3><ul>${p.tips.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+  <div class="box avoid"><h3>建議少吃</h3><ul>${p.avoid.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`;
+  panels.appendChild(d);
+});
+function show(id){
+  phases.forEach(p=>{
+    document.getElementById("p-"+p.id).hidden=p.id!==id;
+    document.getElementById("t-"+p.id).setAttribute("aria-selected",p.id===id);
+  });
+}
+function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+document.getElementById("start").value=new Date(today().getTime()-10*864e5).toISOString().slice(0,10);
+document.getElementById("go").onclick=()=>{
+  const s=document.getElementById("start").value,L=+document.getElementById("len").value;
+  const out=document.getElementById("result");
+  if(!s||!L){out.textContent="請輸入日期與週期天數。";return}
+  const [y,m,d]=s.split("-").map(Number);
+  const diff=Math.round((today()-new Date(y,m-1,d))/864e5);
+  if(diff<0){out.textContent="日期不能在未來。";return}
+  const day=diff%L+1, ov=L-14;
+  let id=day<=5?"m":day<ov-1?"f":day<=ov+1?"o":"l";
+  const p=phases.find(x=>x.id===id);
+  out.textContent=`今天是週期第 ${day} 天，大約在「${p.name}」。（此為推估，實際排卵日因人而異）`;
+  show(id);
+};
+show("m");
+</script>
+</body>
+</html>

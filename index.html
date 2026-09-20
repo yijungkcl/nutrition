@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>週期營養指南</title>
+<style>
+:root{
+  --bg:#f0ebe4; --card:#f9f6f1; --text:#4a4440; --muted:#8a8178; --line:#ddd4c9;
+  --p1:#b58a85; --p2:#c4a882; --p3:#8fa394; --p4:#8e91a8; --accent:#7d6b64;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1e1c1a; --card:#292623; --text:#ebe4dc; --muted:#a39a90; --line:#3d3934;
+  --p1:#c49b96; --p2:#cfb48f; --p3:#9fb3a4; --p4:#9da0b8; --accent:#a8958c;}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.75}
+.serif{font-family:"Noto Serif TC","Songti TC",PMingLiU,serif;font-weight:500}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;white-space:nowrap}
+nav a{padding:14px 12px;color:var(--muted);text-decoration:none;font-size:15px;letter-spacing:.08em}
+nav a:hover{color:var(--text)}
+header.hero{padding:48px 0 24px;display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:center}
+header h1{font-size:clamp(30px,5vw,46px);margin:0 0 8px;letter-spacing:.18em}
+header p{color:var(--muted);margin:0;max-width:480px}
+.portrait{max-width:340px;width:100%;justify-self:center;aspect-ratio:3/4;border-radius:999px 999px 4px 4px;overflow:hidden;background:#f4efe9;border:1px solid var(--line)}
+.portrait img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block;mix-blend-mode:multiply}
+@media(prefers-color-scheme:dark){.portrait{background:#ece6df}.portrait img{mix-blend-mode:normal}}
+@media(max-width:700px){header.hero{grid-template-columns:1fr;text-align:center}header p{margin:0 auto}.portrait{order:-1;max-width:260px}}
+section{padding:32px 0}
+h2.title{font-size:26px;letter-spacing:.12em;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:22px}
+.today{display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:28px;align-items:center}
+@media(max-width:700px){.today{grid-template-columns:1fr}}
+.form{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:16px}
+.form label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:4px}
+.form input{padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text);font-size:16px;width:150px}
+.form input[type=number]{width:90px}
+button.btn{padding:10px 20px;border:0;border-radius:4px;background:var(--accent);color:var(--card);font-size:15px;cursor:pointer;letter-spacing:.05em}
+#status h3{margin:0;font-size:24px;letter-spacing:.1em}
+#status p{margin:6px 0 0;color:var(--muted)}
+svg text{fill:var(--text);font-family:inherit}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+.tab{flex:1 1 140px;padding:12px;border:1.5px solid var(--line);border-radius:4px;background:var(--card);color:var(--text);cursor:pointer;font-size:16px;text-align:center}
+.tab small{display:block;color:var(--muted);font-size:12px}
+.tab[aria-selected=true]{border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
+.panel{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:4px;padding:24px}
+.panel[hidden]{display:none}
+.panel h3.ph{margin:0 0 4px;font-size:24px;letter-spacing:.1em}
+.sub{color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.box{background:var(--bg);border-radius:4px;padding:14px 16px}
+.box h4{margin:0 0 6px;font-size:16px}
+.box ul{margin:0;padding-left:20px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:2px 12px;font-size:14px}
+.avoid h4{color:var(--accent)}
+.meal{display:grid;grid-template-columns:64px 1fr;gap:4px 12px;margin-top:18px}
+.meal b{color:var(--c);font-weight:500}
+.meal span{padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.sym{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.sym button{padding:8px 16px;border:1.5px solid var(--line);border-radius:99px;background:var(--card);color:var(--text);cursor:pointer;font-size:15px}
+.sym button[aria-pressed=true]{background:var(--accent);color:var(--card);border-color:var(--accent)}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.check input{margin-top:6px;accent-color:var(--accent);width:18px;height:18px}
+.check input:checked+span{text-decoration:line-through;color:var(--muted)}
+.prog{height:6px;background:var(--line);border-radius:3px;margin:12px 0 4px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.08em}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}
+.scroll{overflow-x:auto}
+footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a href="#today">今日階段</a><a href="#phases">四階段飲食</a><a href="#symptoms">症狀對照</a><a href="#checklist">今日清單</a><a href="#nutrients">營養素速查</a>
+</div></nav>
+
+<div class="wrap">
+<header class="hero">
+  <div class="hero-text">
+    <h1 class="serif">週期營養指南</h1>
+    <p>依據月經週期四個階段的荷爾蒙變化，調整飲食，讓身體吃得更剛好。</p>
+    <a class="btn" href="#today" style="display:inline-block;margin-top:20px;text-decoration:none">看看我今天在哪個階段</a>
+  </div>
+  <div class="portrait"><img src="images/hero.webp" alt="人像照片" width="1024" height="1536"></div>
+</header>
+
+<section id="today">
+  <div class="card today">
+    <svg id="wheel" viewBox="0 0 300 300" role="img" aria-label="週期輪盤"></svg>
+    <div>
+      <div class="form">
+        <label>上次月經第一天<input type="date" id="start"></label>
+        <label>週期天數<input type="number" id="len" value="28" min="24" max="45"></label>
+        <button class="btn" id="go">計算</button>
+      </div>
+      <div id="status"><p>輸入日期後，這裡會顯示你目前的週期階段。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="phases">
+  <h2 class="title serif">四階段飲食</h2>
+  <p class="lead">點選階段，查看荷爾蒙背景、重點營養與一日菜單示範。</p>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="panels"></div>
+</section>
+
+<section id="symptoms">
+  <h2 class="title serif">症狀對照</h2>
+  <p class="lead">選擇你現在的困擾（可複選），看看飲食上可以怎麼調整。</p>
+  <div class="sym" id="sym"></div>
+  <div class="grid" id="symOut"></div>
+</section>
+
+<section id="checklist">
+  <h2 class="title serif">今日清單</h2>
+  <p class="lead" id="chkLead">依你目前所在階段列出今日小目標，勾選紀錄會存在這台裝置上。</p>
+  <div class="card check">
+    <div id="chkList"></div>
+    <div class="prog"><i id="prog"></i></div>
+    <small id="progTxt" style="color:var(--muted)"></small>
+  </div>
+</section>
+
+<section id="nutrients">
+  <h2 class="title serif">營養素速查</h2>
+  <p class="lead">圓點代表該階段的優先程度：●●● 重點、●● 加強、● 維持。</p>
+  <div class="card scroll"><table id="nutTable"></table></div>
+</section>
+
+<footer>
+  ⚠️ 本站內容僅供一般營養教育，不能取代醫師或營養師的個人化建議。週期天數與排卵日因人而異，計算結果僅為推估；若經痛劇烈、經量異常、週期不規律，或正在懷孕、哺乳、患有慢性疾病，請諮詢專業醫療人員。「週期飲食」的部分說法（如種子循環）目前科學證據有限，請視為參考。
+</footer>
+</div>
+
+<script>
+const phases=[
+{id:"m",name:"月經期",c:"var(--p1)",
+ hormone:"雌激素與黃體素處於低點，子宮內膜剝落，會流失鐵質，容易疲倦、經痛。",
+ focus:[["補鐵","紅肉、豬肝、牛腱、蛤蜊、深綠色蔬菜、黑芝麻、豆腐"],["搭配維生素 C 提高吸收","芭樂、奇異果、彩椒、柑橘"],["鎂與 Omega-3（可能緩解經痛）","堅果、黑巧克力、鮭魚、鯖魚、亞麻籽"]],
+ tips:["溫熱、易消化的食物（湯品、粥、薑茶）較舒適","多喝水，補充流失的水分","茶、咖啡與鐵質食物錯開一小時，以免影響吸收"],
+ avoid:["過量咖啡因與酒精","過鹹加工食品（易水腫）"],
+ meals:[["早餐","燕麥粥 + 黑芝麻 + 奇異果"],["午餐","牛腱蔬菜湯 + 糙米飯 + 燙菠菜"],["晚餐","薑絲蛤蜊蒸蛋 + 豆腐 + 紅蘿蔔"],["點心","杏仁 + 一小塊黑巧克力 + 薑茶"]],
+ chk:["補充一份含鐵食物（紅肉、肝、蛤蜊或深綠蔬菜）","搭配一份維生素 C 水果","喝水 1.5–2 公升","晚間喝一杯溫熱無咖啡因飲品","早點就寢，讓身體休息"]},
+{id:"f",name:"濾泡期",c:"var(--p2)",
+ hormone:"雌激素逐步上升，精力、情緒與胰島素敏感度較好，是適合運動與嘗試新事物的階段。",
+ focus:[["優質蛋白質，支持肌肉與修復","雞胸、蛋、豆類、優格、魚"],["新鮮蔬果與十字花科","花椰菜、青花菜、高麗菜、芽菜、柑橘"],["發酵食物，顧腸道與雌激素代謝","泡菜、味噌、優格、納豆"]],
+ tips:["精力好，可適度增加全穀類與運動前碳水","多樣化蔬菜，攝取不同植化素"],
+ avoid:["過度節食（會干擾荷爾蒙平衡）"],
+ meals:[["早餐","希臘優格 + 莓果 + 燕麥 + 亞麻籽"],["午餐","雞胸沙拉 + 青花菜 + 藜麥"],["晚餐","味噌鮭魚 + 涼拌高麗菜 + 地瓜"],["點心","水煮蛋 + 一顆柑橘"]],
+ chk:["每餐都有一份蛋白質","吃滿 5 份蔬果（拳頭大小為一份）","加入一份發酵食物","安排一次運動（精力好，適合訓練）","三餐規律，不刻意少吃"]},
+{id:"o",name:"排卵期",c:"var(--p3)",
+ hormone:"雌激素達到高峰並出現 LH 高峰，體溫略升，部分人會有排卵痛或食慾下降。",
+ focus:[["抗氧化營養素","莓果、番茄、彩色蔬菜、綠茶"],["高纖維，協助雌激素排出","燕麥、地瓜、豆類、奇亞籽、蔬菜"],["鋅與硒，支持排卵與免疫","海鮮、牡蠣、南瓜籽、巴西堅果、蛋"]],
+ tips:["充足補水，排卵期分泌物增加","若打算懷孕，確認葉酸攝取（深綠蔬菜、豆類、補充品）"],
+ avoid:["酒精（影響荷爾蒙代謝）"],
+ meals:[["早餐","奇亞籽布丁 + 藍莓 + 南瓜籽"],["午餐","鷹嘴豆蔬菜碗 + 番茄 + 橄欖油"],["晚餐","清蒸鱸魚 + 炒彩椒 + 糙米飯"],["點心","巴西堅果 2 顆 + 綠茶"]],
+ chk:["吃一份彩色蔬菜（至少三種顏色）","一份高纖食物（豆類、燕麥或地瓜）","一份含鋅食物（海鮮、蛋或南瓜籽）","喝水 2 公升","備孕者：確認葉酸"]},
+{id:"l",name:"黃體期",c:"var(--p4)",
+ hormone:"黃體素上升，基礎代謝可能略增，食慾變大；後期荷爾蒙下降，常出現 PMS：情緒低落、脹氣、渴望甜食。",
+ focus:[["複合碳水，穩定血糖與情緒","地瓜、糙米、燕麥、南瓜、藜麥"],["維生素 B6 與色胺酸，支持情緒","鮭魚、香蕉、鷹嘴豆、火雞肉、堅果"],["鈣與鎂，有助減輕 PMS 症狀","牛奶、乳酪、深綠蔬菜、黑巧克力（70% 以上）、杏仁"]],
+ tips:["少量多餐，蛋白質＋纖維一起吃，避免血糖大起大落","想吃甜食時，選水果、優格或一小塊黑巧克力","晚間避免咖啡因，睡眠規律"],
+ avoid:["高鹽食物（加重水腫脹氣）","高糖飲料與精緻甜點","酒精與過量咖啡因"],
+ meals:[["早餐","地瓜 + 水煮蛋 + 無糖豆漿"],["午餐","鮭魚糙米飯 + 燙青菜 + 香蕉"],["晚餐","南瓜雞肉燉飯 + 深綠蔬菜"],["點心","優格 + 杏仁；或 70% 黑巧克力 2 小塊"]],
+ chk:["每餐選複合碳水（糙米、地瓜、燕麥）","一份含鈣食物（乳製品、豆腐、深綠蔬菜）","一份含 B6 食物（鮭魚、香蕉、鷹嘴豆）","少鹽：避免泡麵、加工肉品","咖啡因控制在中午前"]}
+];
+
+const symptoms=[
+["經痛",["鎂：堅果、黑巧克力、深綠蔬菜","Omega-3：鮭魚、鯖魚、亞麻籽","薑茶、保暖","減少咖啡因與酒精"]],
+["脹氣水腫",["減少鹽與加工食品","鉀：香蕉、菠菜、地瓜","慢慢吃、少喝碳酸飲料","薄荷茶或溫水"]],
+["疲倦",["鐵＋維生素 C 一起吃","每餐有蛋白質","B 群：全穀、蛋、豆類","不要跳餐"]],
+["情緒低落／PMS",["複合碳水穩定血糖","B6：鮭魚、香蕉、鷹嘴豆","鈣與鎂：乳製品、堅果","規律運動與睡眠"]],
+["想吃甜食",["蛋白質＋纖維延長飽足","水果、優格取代甜點","一小塊 70% 黑巧克力","規律進食，避免過度飢餓"]],
+["睡不好",["鎂：南瓜籽、杏仁、深綠蔬菜","奇異果、溫牛奶","下午後避免咖啡因","晚餐不要太晚、太油"]],
+["便祕",["纖維：蔬菜、燕麥、奇亞籽、李子","每天 1.5–2 公升水","優格等發酵食物","黃體期特別容易，需多留意"]],
+["痘痘",["選低 GI 主食（糙米、燕麥）","Omega-3：魚、堅果","鋅：海鮮、南瓜籽","少含糖飲料（個人差異大）"]]
+];
+
+// nutrient priorities per phase: m,f,o,l
+const nut=[
+["鐵","紅肉、肝、蛤蜊、菠菜、豆腐",[3,1,1,1]],
+["維生素 C","芭樂、奇異果、彩椒、柑橘",[2,2,2,1]],
+["鎂","堅果、南瓜籽、黑巧克力、深綠蔬菜",[3,1,1,3]],
+["Omega-3","鮭魚、鯖魚、亞麻籽、核桃",[3,2,2,2]],
+["蛋白質","蛋、魚、雞肉、豆製品、乳製品",[2,3,2,2]],
+["鋅","牡蠣、海鮮、南瓜籽、牛肉",[1,2,3,1]],
+["膳食纖維","蔬菜、豆類、燕麥、地瓜",[2,2,3,3]],
+["維生素 B6","鮭魚、香蕉、鷹嘴豆、火雞肉",[1,1,1,3]],
+["鈣","乳製品、板豆腐、小魚乾、深綠蔬菜",[1,1,1,3]]
+];
+
+const $=id=>document.getElementById(id);
+const tabs=$("tabs"),panels=$("panels");
+phases.forEach(p=>{
+  const t=document.createElement("button");t.className="tab";t.id="t-"+p.id;t.role="tab";
+  t.style.setProperty("--c",p.c);t.innerHTML=p.name+"<small></small>";t.onclick=()=>show(p.id);tabs.appendChild(t);
+  const d=document.createElement("div");d.className="panel";d.id="p-"+p.id;d.hidden=true;d.style.setProperty("--c",p.c);
+  d.innerHTML=`<h3 class="ph serif">${p.name}</h3><p class="sub">${p.hormone}</p><div class="grid">`+
+   p.focus.map(f=>`<div class="box"><h4>${f[0]}</h4><div class="chips">${f[1].split("、").map(x=>`<span class="chip">${x}</span>`).join("")}</div></div>`).join("")+
+   `<div class="box"><h4>小提醒</h4><ul>${p.tips.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div class="box avoid"><h4>建議少吃</h4><ul>${p.avoid.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>
+    <h4 style="margin:22px 0 0">一日菜單示範</h4><div class="meal">${p.meals.map(m=>`<b>${m[0]}</b><span>${m[1]}</span>`).join("")}</div>`;
+  panels.appendChild(d);
+});
+let current="m";
+function show(id){
+  current=id;
+  phases.forEach(p=>{$("p-"+p.id).hidden=p.id!==id;$("t-"+p.id).setAttribute("aria-selected",p.id===id)});
+  renderChecklist();
+}
+
+// ranges for a given cycle length
+function ranges(L){
+  const ov=L-14;
+  return {m:[1,5],f:[6,ov-2],o:[ov-1,ov+1],l:[ov+2,L]};
+}
+function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function safe(fn){try{return fn()}catch(e){return null}}
+
+function arc(cx,cy,r,a0,a1){
+  const p=a=>[cx+r*Math.sin(a),cy-r*Math.cos(a)];
+  const [x0,y0]=p(a0),[x1,y1]=p(a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function drawWheel(L,day){
+  const R=ranges(L),svg=$("wheel"),cx=150,cy=150,r=112,gap=0.03;
+  let s="";
+  phases.forEach(p=>{
+    const [a,b]=R[p.id];
+    const a0=(a-1)/L*2*Math.PI+gap,a1=b/L*2*Math.PI-gap;
+    s+=`<path d="${arc(cx,cy,r,a0,a1)}" fill="none" stroke="${p.c}" stroke-width="30"/>`;
+    const mid=((a-1+b)/2)/L*2*Math.PI, lr=r+30;
+    s+=`<text x="${cx+lr*Math.sin(mid)}" y="${cy-lr*Math.cos(mid)+4}" font-size="11" text-anchor="middle">${p.name}</text>`;
+  });
+  if(day){
+    const a=(day-.5)/L*2*Math.PI;
+    s+=`<circle cx="${cx+r*Math.sin(a)}" cy="${cy-r*Math.cos(a)}" r="9" fill="var(--card)" stroke="var(--text)" stroke-width="3"/>`;
+    s+=`<text x="150" y="146" font-size="34" text-anchor="middle" class="serif">${day}</text><text x="150" y="168" font-size="12" text-anchor="middle" fill="var(--muted)">週期第 ${day} 天／共 ${L} 天</text>`;
+  }else{
+    s+=`<text x="150" y="156" font-size="14" text-anchor="middle">輸入日期</text>`;
+  }
+  svg.innerHTML=s;
+  // update tab day ranges
+  phases.forEach(p=>{const [a,b]=R[p.id];$("t-"+p.id).querySelector("small").textContent=`第 ${a}–${b} 天`});
+}
+
+function calc(){
+  const s=$("start").value,L=Math.min(45,Math.max(24,+$("len").value||28));
+  $("len").value=L;
+  drawWheel(L,0);
+  if(!s){return}
+  const [y,m,d]=s.split("-").map(Number);
+  const diff=Math.round((today()-new Date(y,m-1,d))/864e5);
+  if(diff<0){$("status").innerHTML="<p>日期不能在未來。</p>";return}
+  const day=diff%L+1,R=ranges(L);
+  const id=Object.keys(R).find(k=>day>=R[k][0]&&day<=R[k][1]);
+  const p=phases.find(x=>x.id===id);
+  const next=new Date(new Date(y,m-1,d).getTime()+(Math.floor(diff/L)+1)*L*864e5);
+  const left=Math.round((next-today())/864e5);
+  drawWheel(L,day);
+  $("status").innerHTML=`<h3 class="serif" style="color:var(--text)"><span class="dot" style="background:${p.c}"></span>${p.name}</h3>
+   <p>${p.hormone}</p><p>預估下次月經：${iso(next)}（約 ${left} 天後）。此為推估，實際日期因人而異。</p>`;
+  safe(()=>localStorage.setItem("cyc",JSON.stringify({s,L})));
+  show(id);
+}
+
+// symptoms
+const symSel=new Set();
+symptoms.forEach((x,i)=>{
+  const b=document.createElement("button");b.textContent=x[0];b.setAttribute("aria-pressed","false");
+  b.onclick=()=>{symSel.has(i)?symSel.delete(i):symSel.add(i);b.setAttribute("aria-pressed",symSel.has(i));renderSym()};
+  $("sym").appendChild(b);
+});
+function renderSym(){
+  $("symOut").innerHTML=[...symSel].map(i=>`<div class="box"><h4>${symptoms[i][0]}</h4><ul>${symptoms[i][1].map(t=>`<li>${t}</li>`).join("")}</ul></div>`).join("")
+   ||`<p style="color:var(--muted)">請點選上方症狀。</p>`;
+}
+renderSym();
+
+// checklist
+function chkKey(id,i){return`chk-${iso(today())}-${id}-${i}`}
+function renderChecklist(){
+  const p=phases.find(x=>x.id===current);
+  $("chkList").innerHTML=p.chk.map((t,i)=>{
+    const on=safe(()=>localStorage.getItem(chkKey(p.id,i)))==="1";
+    return`<label><input type="checkbox" data-i="${i}" ${on?"checked":""}><span>${t}</span></label>`;
+  }).join("");
+  $("chkLead").textContent=`目前顯示「${p.name}」的今日小目標，勾選紀錄會存在這台裝置上。`;
+  $("chkList").querySelectorAll("input").forEach(el=>el.onchange=()=>{
+    safe(()=>localStorage.setItem(chkKey(p.id,el.dataset.i),el.checked?"1":"0"));updateProg();
+  });
+  updateProg();
+}
+function updateProg(){
+  const all=[...$("chkList").querySelectorAll("input")],n=all.filter(x=>x.checked).length;
+  $("prog").style.width=(n/all.length*100)+"%";
+  $("progTxt").textContent=`已完成 ${n} / ${all.length}`+(n===all.length?"　今天做得很好 🌿":"");
+}
+
+// nutrient table
+$("nutTable").innerHTML=`<tr><th>營養素</th><th>常見來源</th>${phases.map(p=>`<th><span class="dot" style="background:${p.c}"></span>${p.name}</th>`).join("")}</tr>`+
+ nut.map(n=>`<tr><td><b>${n[0]}</b></td><td>${n[1]}</td>${n[2].map(v=>`<td>${"●".repeat(v)}</td>`).join("")}</tr>`).join("");
+
+// init
+$("go").onclick=calc;
+const saved=safe(()=>JSON.parse(localStorage.getItem("cyc")));
+if(saved){$("start").value=saved.s;$("len").value=saved.L}
+show("m");drawWheel(+$("len").value||28,0);
+if(saved)calc();
+</script>
+</body>
+</html>
