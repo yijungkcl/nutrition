@@ -74,12 +74,31 @@ th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);verti
 th{color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.08em}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}
 .scroll{overflow-x:auto}
+.ff{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.ff label,.ff .lab{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:4px}
+.ff input,.ff select,.ff textarea{padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text);font:inherit;font-size:15px;width:100%}
+.ff .full{grid-column:1/-1}
+.ff .info{align-self:end;color:var(--text);font-size:15px;padding:8px 0}
+.symchk{display:flex;flex-wrap:wrap;gap:6px}
+.symchk label{flex-direction:row;align-items:center;gap:6px;padding:4px 12px;border:1px solid var(--line);border-radius:99px;background:var(--bg);color:var(--text);font-size:14px;cursor:pointer}
+.symchk input{width:auto;accent-color:var(--accent)}
+.export{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.export .btn.alt{background:var(--card);color:var(--text);border:1.5px solid var(--accent)}
+#msg{color:var(--muted);font-size:14px;min-height:22px;margin:0 0 12px}
+#logTable td{font-size:14px}
+#logTable button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px}
+@media print{
+  @page{size:landscape;margin:12mm}
+  nav,header,footer,section:not(#log),.noprint{display:none!important}
+  body{background:#fff;color:#000}.card{border:0;background:#fff}
+  #logTable td,#logTable th{color:#000;font-size:11px}
+}
 footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
 <nav><div class="wrap">
-  <a href="#today">今日階段</a><a href="#phases">四階段飲食</a><a href="#symptoms">症狀對照</a><a href="#checklist">今日清單</a><a href="#nutrients">營養素速查</a>
+  <a href="#today">今日階段</a><a href="#phases">四階段飲食</a><a href="#symptoms">症狀對照</a><a href="#checklist">今日清單</a><a href="#log">我的紀錄</a><a href="#nutrients">營養素速查</a>
 </div></nav>
 
 <div class="wrap">
@@ -130,6 +149,37 @@ footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px soli
   </div>
 </section>
 
+<section id="log">
+  <h2 class="title serif">我的紀錄</h2>
+  <p class="lead noprint">每天花一分鐘記錄身體狀況與飲食。資料會存在這台裝置並同步到雲端（以匿名身分，僅本瀏覽器可讀取），可匯出成 Excel、CSV、PDF，或貼到 Google 試算表。</p>
+  <div class="card noprint">
+    <form id="logForm" class="ff">
+      <label>日期<input type="date" id="f-date" required></label>
+      <div class="lab">週期位置<div class="info" id="f-info">尚未設定（請先在上方計算）</div></div>
+      <label>經血量<select id="f-flow"><option value="">—</option><option>無</option><option>點狀</option><option>少</option><option>中</option><option>多</option></select></label>
+      <label>心情<select id="f-mood"><option value="">—</option><option>1 很差</option><option>2 偏差</option><option>3 普通</option><option>4 不錯</option><option>5 很好</option></select></label>
+      <label>精力<select id="f-energy"><option value="">—</option><option>1 很低</option><option>2 偏低</option><option>3 普通</option><option>4 不錯</option><option>5 充沛</option></select></label>
+      <label>飲水（ml）<input type="number" id="f-water" min="0" step="100" placeholder="例如 1800"></label>
+      <label>睡眠（小時）<input type="number" id="f-sleep" min="0" max="24" step="0.5" placeholder="例如 7.5"></label>
+      <div class="lab full">症狀（可複選）<div class="symchk" id="f-sym"></div></div>
+      <label>早餐<input id="f-breakfast"></label>
+      <label>午餐<input id="f-lunch"></label>
+      <label>晚餐<input id="f-dinner"></label>
+      <label>點心<input id="f-snack"></label>
+      <label class="full">備註<textarea id="f-note" rows="2"></textarea></label>
+      <div class="full"><button class="btn" type="submit">儲存這一天</button> <small style="color:var(--muted)">同一天再儲存會覆蓋舊紀錄</small></div>
+    </form>
+  </div>
+  <div class="export noprint">
+    <button class="btn" id="x-xlsx">下載 Excel</button>
+    <button class="btn alt" id="x-csv">下載 CSV</button>
+    <button class="btn alt" id="x-pdf">下載 PDF</button>
+    <button class="btn alt" id="x-gs">在 Google 試算表開啟</button>
+  </div>
+  <p id="msg" class="noprint" role="status"></p>
+  <div class="card scroll"><table id="logTable"></table></div>
+</section>
+
 <section id="nutrients">
   <h2 class="title serif">營養素速查</h2>
   <p class="lead">圓點代表該階段的優先程度：●●● 重點、●● 加強、● 維持。</p>
@@ -141,6 +191,8 @@ footer{color:var(--muted);font-size:13px;padding:24px 0 56px;border-top:1px soli
 </footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const phases=[
 {id:"m",name:"月經期",c:"var(--p1)",
@@ -310,12 +362,146 @@ function updateProg(){
 $("nutTable").innerHTML=`<tr><th>營養素</th><th>常見來源</th>${phases.map(p=>`<th><span class="dot" style="background:${p.c}"></span>${p.name}</th>`).join("")}</tr>`+
  nut.map(n=>`<tr><td><b>${n[0]}</b></td><td>${n[1]}</td>${n[2].map(v=>`<td>${"●".repeat(v)}</td>`).join("")}</tr>`).join("");
 
+// ---- log form & export ----
+const COLS=[["date","日期"],["day","週期天數"],["phase","階段"],["flow","經血量"],["symptoms","症狀"],["mood","心情"],["energy","精力"],["water","飲水(ml)"],["sleep","睡眠(小時)"],["breakfast","早餐"],["lunch","午餐"],["dinner","晚餐"],["snack","點心"],["note","備註"]];
+const getLog=()=>safe(()=>JSON.parse(localStorage.getItem("log")))||[];
+const setLog=a=>safe(()=>localStorage.setItem("log",JSON.stringify(a)));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const msg=t=>{$("msg").textContent=t};
+function phaseOf(ds){
+  const c=safe(()=>JSON.parse(localStorage.getItem("cyc")));
+  if(!c||!ds)return null;
+  const [y,m,d]=ds.split("-").map(Number),[y0,m0,d0]=c.s.split("-").map(Number);
+  const diff=Math.round((new Date(y,m-1,d)-new Date(y0,m0-1,d0))/864e5);
+  if(diff<0)return null;
+  const day=diff%c.L+1,R=ranges(c.L),id=Object.keys(R).find(k=>day>=R[k][0]&&day<=R[k][1]);
+  return{day,name:phases.find(p=>p.id===id).name};
+}
+function updInfo(){
+  const r=phaseOf($("f-date").value);
+  $("f-info").textContent=r?`第 ${r.day} 天・${r.name}`:"尚未設定（請先在上方計算）";
+}
+symptoms.forEach(s=>{
+  const l=document.createElement("label");
+  l.innerHTML=`<input type="checkbox" value="${s[0]}">${s[0]}`;$("f-sym").appendChild(l);
+});
+$("f-date").value=iso(today());$("f-date").onchange=updInfo;
+$("logForm").onsubmit=async e=>{
+  e.preventDefault();
+  const date=$("f-date").value,r=phaseOf(date);
+  const rec={date,day:r?r.day:"",phase:r?r.name:"",flow:$("f-flow").value,
+    symptoms:[...$("f-sym").querySelectorAll("input:checked")].map(x=>x.value).join("、"),
+    mood:$("f-mood").value,energy:$("f-energy").value,water:$("f-water").value,sleep:$("f-sleep").value,
+    breakfast:$("f-breakfast").value,lunch:$("f-lunch").value,dinner:$("f-dinner").value,snack:$("f-snack").value,note:$("f-note").value};
+  const a=getLog().filter(x=>x.date!==date);a.push(rec);a.sort((x,y)=>y.date.localeCompare(x.date));
+  setLog(a);renderLog();msg(`已儲存 ${date} 的紀錄。`);
+  pushRemote(rec).then(ok=>msg(ok?`已儲存 ${date} 的紀錄，並同步到雲端。`:`已儲存 ${date} 的紀錄（僅存在本機，雲端同步失敗）。`));
+};
+
+// ---- Supabase sync ----
+const SB_URL="https://jghwiieqwzsjkqttgzyt.supabase.co",SB_KEY="sb_publishable_Sbqg45sARvIPzbflzG65FA_WMsy9lj_";
+let sb=null,sbReady=null;
+// No login: each browser makes a random ID and sends it as the x-client-id header;
+// RLS on cycle_logs only lets a request touch rows with that same ID.
+function clientId(){
+  let id=safe(()=>localStorage.getItem("cid"));
+  if(!id){id=(crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16)}));safe(()=>localStorage.setItem("cid",id))}
+  return id;
+}
+const CID=clientId();
+async function sbInit(){
+  try{
+    if(!window.supabase)return false;
+    if(!sb)sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{"x-client-id":CID}}});
+    return true;
+  }catch(e){console.warn("Supabase unavailable:",e);return false}
+}
+const toRow=r=>({client_id:CID,log_date:r.date,cycle_day:r.day===""?null:+r.day,phase:r.phase||null,flow:r.flow||null,symptoms:r.symptoms||null,
+  mood:r.mood||null,energy:r.energy||null,water_ml:r.water===""?null:+r.water,sleep_hours:r.sleep===""?null:+r.sleep,
+  breakfast:r.breakfast||null,lunch:r.lunch||null,dinner:r.dinner||null,snack:r.snack||null,note:r.note||null,updated_at:new Date().toISOString()});
+const fromRow=r=>({date:r.log_date,day:r.cycle_day??"",phase:r.phase??"",flow:r.flow??"",symptoms:r.symptoms??"",mood:r.mood??"",energy:r.energy??"",
+  water:r.water_ml??"",sleep:r.sleep_hours??"",breakfast:r.breakfast??"",lunch:r.lunch??"",dinner:r.dinner??"",snack:r.snack??"",note:r.note??""});
+async function pushRemote(rec){
+  if(!await sbInit())return false;
+  const {error}=await sb.from("cycle_logs").upsert(toRow(rec),{onConflict:"client_id,log_date"});
+  if(error)console.warn(error);return !error;
+}
+async function deleteRemote(date){
+  if(!await sbInit())return;
+  const {error}=await sb.from("cycle_logs").delete().eq("log_date",date);if(error)console.warn(error);
+}
+async function pullRemote(){
+  if(!await sbInit())return;
+  const {data,error}=await sb.from("cycle_logs").select("*");
+  if(error){console.warn(error);return}
+  const remote=new Map(data.map(r=>[r.log_date,fromRow(r)]));
+  const local=getLog();
+  // local-only records (saved offline) get uploaded
+  for(const r of local)if(!remote.has(r.date))await pushRemote(r);
+  const merged=new Map(remote);local.forEach(r=>{if(!merged.has(r.date))merged.set(r.date,r)});
+  setLog([...merged.values()].sort((x,y)=>y.date.localeCompare(x.date)));renderLog();
+}
+function renderLog(){
+  const a=getLog();
+  $("logTable").innerHTML=`<tr>${COLS.map(c=>`<th>${c[1]}</th>`).join("")}<th class="noprint"></th></tr>`+
+   (a.length?a.map(r=>`<tr>${COLS.map(c=>`<td>${esc(r[c[0]])}</td>`).join("")}<td class="noprint"><button data-d="${r.date}">刪除</button></td></tr>`).join("")
+   :`<tr><td colspan="${COLS.length+1}" style="color:var(--muted)">還沒有紀錄，填寫上方表單後會顯示在這裡。</td></tr>`);
+  $("logTable").querySelectorAll("button[data-d]").forEach(b=>b.onclick=()=>{
+    if(confirm("刪除 "+b.dataset.d+" 的紀錄？")){setLog(getLog().filter(x=>x.date!==b.dataset.d));renderLog();deleteRemote(b.dataset.d)}
+  });
+}
+const rows2d=()=>[COLS.map(c=>c[1]),...getLog().map(r=>COLS.map(c=>r[c[0]]??""))];
+function download(blob,name){
+  const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+const hasData=()=>{if(getLog().length)return true;msg("還沒有紀錄可匯出，請先儲存至少一天。");return false};
+const stamp=()=>"週期營養紀錄-"+iso(today());
+$("x-csv").onclick=()=>{
+  if(!hasData())return;
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  download(new Blob(["﻿"+rows2d().map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}),stamp()+".csv");
+  msg("已下載 CSV（含 UTF-8 標記，Excel 可正確顯示中文）。");
+};
+$("x-xlsx").onclick=()=>{
+  if(!hasData())return;
+  if(window.XLSX){
+    const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows2d());
+    ws["!cols"]=COLS.map((c,i)=>({wch:i===4||i>8?22:11}));
+    XLSX.utils.book_append_sheet(wb,ws,"紀錄");XLSX.writeFile(wb,stamp()+".xlsx");msg("已下載 Excel。");
+  }else{
+    const t="<html><head><meta charset='utf-8'></head><body><table border='1'>"+rows2d().map(r=>"<tr>"+r.map(v=>`<td>${esc(v)}</td>`).join("")+"</tr>").join("")+"</table></body></html>";
+    download(new Blob([t],{type:"application/vnd.ms-excel"}),stamp()+".xls");
+    msg("未能載入 Excel 元件（可能離線），已改下載 .xls；Excel 開啟時可能出現格式提示，選「是」即可。");
+  }
+};
+$("x-pdf").onclick=()=>{
+  if(!hasData())return;
+  msg("請在列印視窗的「目的地」選擇「另存為 PDF」。");
+  setTimeout(()=>window.print(),100);
+};
+$("x-gs").onclick=async()=>{
+  if(!hasData())return;
+  const tsv=rows2d().map(r=>r.map(v=>String(v).replace(/[\t\r\n]+/g," ")).join("\t")).join("\n");
+  try{
+    await navigator.clipboard.writeText(tsv);
+    window.open("https://sheets.new","_blank","noopener");
+    msg("資料已複製。在新開的空白試算表點選 A1 儲存格，按 Ctrl+V（Mac：⌘V）貼上即可。");
+  }catch(e){
+    download(new Blob(["﻿"+tsv.replace(/\t/g,",")],{type:"text/csv;charset=utf-8"}),stamp()+".csv");
+    window.open("https://sheets.new","_blank","noopener");
+    msg("無法使用剪貼簿，已改下載 CSV。在 Google 試算表選「檔案 → 匯入 → 上傳」即可。");
+  }
+};
+
 // init
 $("go").onclick=calc;
 const saved=safe(()=>JSON.parse(localStorage.getItem("cyc")));
 if(saved){$("start").value=saved.s;$("len").value=saved.L}
 show("m");drawWheel(+$("len").value||28,0);
 if(saved)calc();
+renderLog();updInfo();
+pullRemote();
 </script>
 </body>
 </html>
